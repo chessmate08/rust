@@ -1,29 +1,48 @@
 use rand;
-use std::{io, process::exit};
+use std::io;
 
 fn main() {
-    let actual = rand::random_range(1..=100);
-    println!("Write number:   ");
-    let mut num: i32 = user_num();
-    let mut guesses: i32=1;
-    while num != actual {
-        guesses+=1;
-        if guesses==6 {println!("You lost, run again to play again\n\n"); exit(0);}
-
-        let msg: &str= if num < actual {"Go higher"} else {"Go lower"};
-        println!("{}\n\nWrite number:", msg);
-        
-        num = user_num();
+    let mut actual = rand::random_range(1..=100);
+    
+    loop {
+        println!("Write number 1 - 100 inclusively:   ");
+        let num: u8 = loop {
+            let mut buffer = String::new();
+            let input = io::stdin().read_line(&mut buffer);
+            
+            match input {
+                Result::Err(error) => {
+                    println!("Error getting value: {:?}", error);
+                    continue;
+                },
+                Result::Ok(_val) => ()
+            }
+            match buffer.trim().parse::<u8>() {
+                Ok(val) => {
+                    break val;
+                },
+                Err(e) => {
+                    println!("Not a positive integer or less than 256: {:?}", e);
+                    continue;
+                }
+            }
         };
-    println!("You got it in {guesses} guesses!")
-}
+        if num > actual {
+            println!("{num} is too high\n");
+        } else if num < actual {
+            println!("{num} is too low\n");
+        } else {
+            println!("{num} is correct!");
+            let mut buffer = String::new();
+            let _x = io::stdin().read_line(&mut buffer);
+            println!("play again?");
+            if buffer.trim().len() >= 1 && buffer.trim().chars().next().unwrap().to_lowercase().next().unwrap() == 'y' {
+                actual = rand::random_range(1..=100);
+                continue;
+            }
+            break;
 
-fn user_num() -> i32 {
-    
-    let mut buffer: String = String::new();
-    
-    let _x=io::stdin().read_line(&mut buffer);
-    
-    let number: i32 = buffer.trim().parse::<i32>().unwrap();
-    number
+        }
+    }
+
 }
